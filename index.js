@@ -11,11 +11,20 @@ let port = 3001;
 let app = express();
 let server = http.createServer(app).listen(port);
 
+//rollbar implementation
+var Rollbar = require("rollbar");
+var rollbar = new Rollbar({
+  accessToken: "91fff41a113d4fb88231f126496b5087",
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+});
+
 //apply expressWs
 expressWs(app, server);
 
 //get the /ws websocket route
 app.ws("/ws", async function (ws, req) {
+  rollbar.log("someone is accessing");
   let id = -1;
   let intervalID = setInterval(function () {
     console.log("updating");
@@ -31,6 +40,7 @@ app.ws("/ws", async function (ws, req) {
     let data = JSON.parse(msg);
 
     if (data.text === "requestingID") {
+      rollbar.log("someone is requesting an id");
       ws.send(JSON.stringify({ text: "sendingID", id: incrementID }));
       id = incrementID;
       incrementID++;
